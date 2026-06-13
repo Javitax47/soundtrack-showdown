@@ -53,11 +53,28 @@ export const TOP_50_TITLES: Set<string> = new Set([
     'Fungi Mines',
 ]);
 
-// Filter by matching title (since video IDs can change, title matching is more robust)
-// For titles that appear in multiple games (like "Menu Theme"), we keep ALL matches
+// Normaliza títulos para comparar de forma tolerante: ignora mayúsculas,
+// puntuación (apóstrofos, comas) y sufijos entre paréntesis, ya que los
+// títulos en la base de datos varían ("Egg Planet (Good Egg Galaxy)" vs
+// "Egg Planet", "Bowser's Road" vs "Bowsers Road", etc.).
+function normalizeTitle(title: string): string {
+    return title
+        .toLowerCase()
+        .replace(/\([^)]*\)/g, ' ')
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+const TOP_50_NORMALIZED: Set<string> = new Set(
+    Array.from(TOP_50_TITLES, normalizeTitle)
+);
+
+// Filter by matching title (since video IDs can change, title matching is more robust).
+// For titles that appear in multiple games (like "Menu Theme"), we keep ALL matches.
 export function filterSongsByMode(songs: Song[], mode: GameMode): Song[] {
     if (mode === 'all') return songs;
-    return songs.filter(song => TOP_50_TITLES.has(song.title));
+    return songs.filter(song => TOP_50_NORMALIZED.has(normalizeTitle(song.title)));
 }
 
 export const GAME_MODE_INFO: Record<GameMode, { label: string; description: string; icon: string }> = {

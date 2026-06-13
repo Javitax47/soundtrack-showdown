@@ -67,6 +67,24 @@ supabase db push
 > La Edge Function `supabase/functions/seed-songs` borra y reinserta toda la tabla
 > `songs`: **no la despliegues sin protegerla con autenticación**, o úsala solo en local.
 
+## 🌐 Despliegue en GitHub Pages
+
+El repo incluye un workflow ([.github/workflows/deploy.yml](.github/workflows/deploy.yml))
+que compila y publica automáticamente en cada push a `main`. Pasos (solo una vez):
+
+1. **Sube el repo a GitHub** (ver más abajo).
+2. **Añade las credenciales de Supabase** como *secrets*:
+   `Settings → Secrets and variables → Actions → New repository secret`
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+3. **Activa Pages:** `Settings → Pages → Build and deployment → Source: GitHub Actions`.
+4. Haz `git push`. Al terminar el workflow, la app estará en
+   `https://<usuario>.github.io/<repo>/`.
+
+> El `base` se ajusta solo al nombre del repositorio. Si usas un repo
+> `<usuario>.github.io` (Pages de usuario, en la raíz), no necesitas subruta:
+> el `base` por defecto ya es `/`.
+
 ## 📜 Scripts
 
 | Comando             | Descripción                                  |
