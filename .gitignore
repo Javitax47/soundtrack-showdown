@@ -29,6 +29,3 @@ dist-ssr
 
 # Build / tooling
 *.tsbuildinfo
-
-# Bolt / scaffolding artifacts
-.bolt
