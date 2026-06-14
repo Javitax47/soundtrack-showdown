@@ -162,11 +162,13 @@ export function SongCard({
     }
     // Detect Cancel or Quick Drop (Swipe Down)
     else if (allowedY > 50 && tutorialPhase !== 'UNLOCK') {
-      // Quick Tier Drop detection
+      // Quick Tier Drop detection. Solo disponible cuando la tarjeta NO está
+      // bloqueada: con la tarjeta bloqueada, deslizar hacia abajo únicamente la
+      // desbloquea (antes se solapaba con la asignación rápida por tiers).
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       const dropZoneY = isMobile ? 120 : 150;
 
-      if (allowedY > dropZoneY) {
+      if (!isLocked && allowedY > dropZoneY) {
         const screenWidth = window.innerWidth;
         const x = allowedX + screenWidth / 2;
         const segment = screenWidth / 5;
@@ -572,7 +574,8 @@ export function SongCard({
                 <div className="animate-stamp-bad border-4 border-slate-500 text-slate-400 bg-slate-900/60 backdrop-blur-xl rounded-[2rem] px-10 py-8 flex flex-col items-center gap-3 shadow-[0_0_100px_rgba(100,116,139,0.4)] z-10 scale-125">
                   <X size={100} strokeWidth={3} className="drop-shadow-[0_0_15px_rgba(100,116,139,0.5)]" />
                   <div className="text-center mt-4">
-                    <span className="font-black text-6xl md:text-7xl uppercase tracking-tighter drop-shadow-[0_0_15px_rgba(100,116,139,0.5)] block leading-none">CANCEL</span>
+                    <span className="font-black text-5xl md:text-6xl uppercase tracking-tighter drop-shadow-[0_0_15px_rgba(100,116,139,0.5)] block leading-none">{isLocked ? 'SOLTAR' : 'VOLVER'}</span>
+                    <span className="font-bold text-xs md:text-sm tracking-[0.3em] uppercase text-slate-400 mt-3 block">{isLocked ? 'Desbloquear tarjeta' : 'Volver al centro'}</span>
                   </div>
                 </div>
               ) : (
@@ -587,7 +590,7 @@ export function SongCard({
             </div>
           )}
 
-          <div className={`${isPreviewing || isLocked ? 'flex-[0.5] md:flex-none' : 'flex-1'} flex flex-col px-4 pb-4 pt-4 md:px-6 md:pb-6 relative overflow-hidden justify-center transition-all duration-500`}>
+          <div className={`${isPreviewing || isLocked ? 'flex-[0.5] md:flex-none' : 'flex-1'} flex flex-col px-4 pb-4 pt-4 md:px-6 md:pb-6 relative overflow-hidden justify-center min-h-0 transition-all duration-500`}>
             <div className="relative z-10 flex flex-col h-full justify-between">
               {/* Card Badge */}
               {isPreviewing && (
@@ -602,7 +605,7 @@ export function SongCard({
               )}
 
               {/* Responsive Horizontal Header */}
-              <div className="flex-1 flex flex-row items-center justify-start pointer-events-none gap-4 md:gap-6">
+              <div className="flex-1 min-h-0 min-w-0 flex flex-row items-center justify-start pointer-events-none gap-4 md:gap-6">
                 <div className="relative group shrink-0">
                   <div className={`absolute inset-0 blur-xl rounded-full pulse-glow ${isPreviewing ? 'bg-yellow-500/20' : 'bg-blue-500/20'}`} />
                   {imgSrc && (
@@ -662,8 +665,8 @@ export function SongCard({
           </div>
 
           {/* Control Surface */}
-          <div className={`flex flex-col transition-all duration-500 backdrop-blur-2xl border-t p-4 md:p-5 relative z-20 pointer-events-auto ${isPreviewing ? 'flex-1 justify-center bg-yellow-900/20 border-yellow-500/20' : 'justify-end bg-slate-900/80 border-white/10'}`}>
-            <div className={`video-area-container w-full mx-auto transition-all duration-500 relative ${isPreviewing ? 'max-w-full' : 'max-w-[340px] md:max-w-md mb-3 md:mb-4 lg:mb-5'}`}>
+          <div className={`flex flex-col transition-all duration-500 backdrop-blur-2xl border-t p-4 md:p-5 relative z-20 pointer-events-auto min-h-0 ${isPreviewing ? 'flex-1 justify-center bg-yellow-900/20 border-yellow-500/20' : 'justify-end bg-slate-900/80 border-white/10'}`}>
+            <div className={`video-area-container w-full mx-auto transition-all duration-500 relative ${isPreviewing ? 'max-w-[440px] md:max-w-md' : 'max-w-[340px] md:max-w-md mb-3 md:mb-4 lg:mb-5'}`}>
               {/* Invisible overlay to prevent iframe from swallowing touch events */}
               {!isVideoControlActive && (
                 <div className="absolute inset-0 z-50 cursor-pointer"></div>
@@ -720,7 +723,7 @@ export function SongCard({
       </div>
 
       {/* QUICK TIER DROP BUBBLES */}
-      <div className={`fixed bottom-10 inset-x-4 z-[100] flex justify-between gap-2 transition-all duration-300 ${isDragging && currentY > 80 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20 pointer-events-none'}`}>
+      <div className={`fixed bottom-10 inset-x-4 z-[100] flex justify-between gap-2 transition-all duration-300 ${isDragging && currentY > 80 && !isLocked ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20 pointer-events-none'}`}>
         {['S', 'A', 'B', 'C', 'D'].map((t) => {
           const tier = TIERS[t];
           const isHovered = hoverTier === t;

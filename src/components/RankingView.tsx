@@ -61,6 +61,11 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
 
   const currentSong = availableSongs[0];
 
+  // Los límites de tier por defecto se derivan del número de canciones YA
+  // puntuadas (no de la biblioteca completa) y se recalculan a medida que crece
+  // la lista. Solo se "congelan" como override si el usuario arrastra un divisor.
+  const displayTierBounds = tierBounds ?? getDefaultTierBounds(Math.max(rankedSongs.length, 1));
+
   useEffect(() => {
     loadInitialData();
   }, [sessionId]);
@@ -109,20 +114,15 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
       setRankedSongs(enrichedRanked);
       setExcludedSongs(excluded);
 
-      // Load custom tier boundaries
+      // Tier boundaries: solo se restauran si vienen en la URL (layout
+      // compartido). En caso contrario se usan límites proporcionales por
+      // defecto, derivados del número de canciones puntuadas (displayTierBounds).
       const params = new URLSearchParams(window.location.search);
       const urlTiers = params.get('tiers');
       if (urlTiers) {
         const parts = urlTiers.split(',').map(Number);
-        if (parts.length === 4) {
+        if (parts.length === 4 && parts.every((n) => Number.isFinite(n))) {
           setTierBounds({ S: 0, A: parts[0], B: parts[1], C: parts[2], D: parts[3] });
-        }
-      } else {
-        const localTiers = localStorage.getItem(`tiers_${sessionId}`);
-        if (localTiers) {
-          setTierBounds(JSON.parse(localTiers));
-        } else {
-          setTierBounds(getDefaultTierBounds(songs.length));
         }
       }
 
@@ -137,9 +137,10 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
   };
 
   useEffect(() => {
+    // Solo persistimos en la URL cuando el usuario ha personalizado los tiers
+    // (tierBounds !== null). Los valores por defecto no se guardan para que
+    // siempre se recalculen según el progreso.
     if (tierBounds && sessionId !== 'tutorial') {
-      localStorage.setItem(`tiers_${sessionId}`, JSON.stringify(tierBounds));
-
       // Update URL silently for easy sharing
       const params = new URLSearchParams(window.location.search);
       const tierStr = `${tierBounds.A},${tierBounds.B},${tierBounds.C},${tierBounds.D}`;
@@ -179,8 +180,7 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
       const overIndex = rankedSongs.findIndex(s => s.song_id === over.id);
       if (overIndex !== -1) {
         setTierBounds(prev => {
-          if (!prev) return prev;
-          const newBounds = { ...prev, [tierKey]: overIndex };
+          const newBounds = { ...(prev ?? displayTierBounds), [tierKey]: overIndex };
           // Enforce logical order
           newBounds.A = Math.max(1, newBounds.A);
           newBounds.B = Math.max(newBounds.A, newBounds.B);
@@ -195,7 +195,7 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
     // Handle Song dropped on Tier Header
     if (String(over.id).startsWith('tier-')) {
       const tierKey = String(over.id).replace('tier-', '');
-      const targetIndex = tierBounds?.[tierKey] ?? 0;
+      const targetIndex = displayTierBounds[tierKey] ?? 0;
 
       setRankedSongs((items) => {
         const oldIndex = items.findIndex((i) => i.song_id === active.id);
@@ -208,9 +208,7 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
         const adjustedTarget = oldIndex < targetIndex ? targetIndex - 1 : targetIndex;
         newItems.splice(Math.max(0, adjustedTarget), 0, movedItem);
 
-        if (tierBounds) {
-          setTierBounds(prev => prev ? shiftBoundsForInsertion(prev, adjustedTarget, oldIndex) : prev);
-        }
+        setTierBounds(prev => shiftBoundsForInsertion(prev ?? displayTierBounds, adjustedTarget, oldIndex));
 
         const fullyUpdated = newItems.map((song, idx) => ({ ...song, final_rank: idx + 1 }));
         if (sessionId !== 'tutorial') {
@@ -298,6 +296,8 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
 
   const handleTopRank = () => {
     if (!currentSong) return;
+    // En el tutorial, solo se permite esta acción en su fase correspondiente.
+    if (tutorialPhase && tutorialPhase !== 'TOP1') return;
     setIsFlyingAway(true);
     setTimeout(() => {
       finalizeRanking(currentSong.id, 0); // Rank #1
@@ -306,6 +306,8 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
 
   const handleInsertAt = (index: number) => {
     if (!currentSong) return;
+    // Insertar solo está permitido en las fases del tutorial que lo enseñan.
+    if (tutorialPhase && tutorialPhase !== 'FAN_OPEN' && tutorialPhase !== 'UNLOCK') return;
     setIsFlyingAway(true);
     setTimeout(() => {
       finalizeRanking(currentSong.id, index);
@@ -314,6 +316,7 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
 
   const handleSkipSong = async () => {
     if (!currentSong) return;
+    if (tutorialPhase && tutorialPhase !== 'SKIP') return;
 
     setExcludedSongs([...excludedSongs, {
       id: Math.random().toString(),
@@ -385,7 +388,7 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
           else window.location.reload();
         }}
         onContinueEditing={() => setViewState('ranking')}
-        tierBounds={tierBounds}
+        tierBounds={displayTierBounds}
       />
     );
   }
@@ -530,7 +533,7 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
                   soundEnabled={soundEnabled}
                   tutorialPhase={tutorialPhase}
                   onTutorialAdvance={handleTutorialAdvance}
-                  tierBounds={tierBounds}
+                  tierBounds={displayTierBounds}
                 />
               </div>
             ) : (
@@ -565,7 +568,7 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
               onDragEnd={handleDragEnd}
               tutorialPhase={tutorialPhase}
               onTutorialAdvance={handleTutorialAdvance}
-              tierBounds={tierBounds}
+              tierBounds={displayTierBounds}
             />
           </aside>
         </div >
