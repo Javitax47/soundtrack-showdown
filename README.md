@@ -1,5 +1,7 @@
 # 🎵 Soundtrack Showdown
 
+**[▶ Jugar en línea](https://javitax47.github.io/soundtrack-showdown/)**
+
 Escucha, compara y clasifica en *tiers* las melodías más icónicas de los videojuegos.
 Arrastra cada tema, ábrelo en abanico para compararlo con tu ranking actual y decide cuál merece el número uno.
 
@@ -80,6 +82,8 @@ que compila y publica automáticamente en cada push a `main`. Pasos (solo una ve
 3. **Activa Pages:** `Settings → Pages → Build and deployment → Source: GitHub Actions`.
 4. Haz `git push`. Al terminar el workflow, la app estará en
    `https://<usuario>.github.io/<repo>/`.
+
+La instancia de referencia está en **https://javitax47.github.io/soundtrack-showdown/**.
 
 > El `base` se ajusta solo al nombre del repositorio. Si usas un repo
 > `<usuario>.github.io` (Pages de usuario, en la raíz), no necesitas subruta:
