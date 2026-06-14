@@ -93,6 +93,19 @@ que compila y publica automáticamente en cada push a `main`. Pasos (solo una ve
 | `npm run build`     | Compila para producción en `dist/`           |
 | `npm run preview`   | Sirve el build de producción localmente      |
 | `npm run lint`      | Linter (ESLint)                              |
+
+### Mantenimiento del catálogo
+
+Como los temas se sirven desde YouTube, algún vídeo puede caerse o estar mal
+asignado. Dos herramientas (sin API key) ayudan a mantenerlo sano:
+
+```bash
+node scripts/check-songs.mjs    # audita disponibilidad y detecta posibles errores
+node scripts/suggest-fixes.mjs  # propone reemplazos verificados -> fix-songs.sql
+```
+
+`fix-songs.sql` contiene `UPDATE`s listos para revisar y ejecutar en el
+**SQL Editor** de Supabase (las escrituras a `songs` requieren rol privilegiado).
 | `npm run typecheck` | Comprobación de tipos (TypeScript)           |
 
 ## 📁 Estructura

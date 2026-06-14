@@ -29,3 +29,9 @@ dist-ssr
 
 # Build / tooling
 *.tsbuildinfo
+
+# Informes generados por los scripts de mantenimiento
+song-link-report.json
+song-link-report.txt
+fixes-review.txt
+fix-songs.sql
