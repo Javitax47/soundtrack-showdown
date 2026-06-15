@@ -514,7 +514,7 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
 
           {getTutorialOverlay()}
 
-          <main className={`flex-1 flex flex-col min-h-[500px] lg:min-h-0 perspective-[1000px] transition-all duration-500 z-10 ${tutorialPhase === 'REORDER' ? 'opacity-30 blur-sm pointer-events-none grayscale' : ''}`}>
+          <main className={`flex-1 flex flex-col min-h-[500px] lg:min-h-0 perspective-[1000px] transition-all duration-500 z-20 ${tutorialPhase === 'REORDER' ? 'opacity-30 blur-sm pointer-events-none grayscale' : ''}`}>
 
             {currentSong ? (
               <div className={`flex-1 flex flex-col min-h-[500px] lg:min-h-0 relative w-full h-full transition-all duration-500 ease-in-out ${isFlyingAway ? 'fly-away' : ''}`}>
