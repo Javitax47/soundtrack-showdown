@@ -52,6 +52,7 @@ export function RankingPanel({
   // Compute mixed items for sortable context
   const mixedItems: string[] = [];
   if (tierBounds) {
+    mixedItems.push('tier-S'); // Tier S is always first and non-draggable
     rankedSongs.forEach((item, index) => {
       if (index === tierBounds.A) mixedItems.push('tier-A');
       if (index === tierBounds.B) mixedItems.push('tier-B');
@@ -117,7 +118,7 @@ export function RankingPanel({
                   if (id.startsWith('tier-')) {
                     const tierId = id.replace('tier-', '');
                     const tier = TIERS[tierId];
-                    return <SortableTierHeader key={id} id={id} tier={tier} />;
+                    return <SortableTierHeader key={id} id={id} tier={tier} disabled={id === 'tier-S'} />;
                   }
 
                   const item = rankedSongs.find(s => s.song_id === id);
@@ -158,7 +159,7 @@ export function RankingPanel({
   );
 }
 
-function SortableTierHeader({ id, tier }: { id: string, tier: any }) {
+function SortableTierHeader({ id, tier, disabled = false }: { id: string, tier: any, disabled?: boolean }) {
   const {
     attributes,
     listeners,
@@ -167,7 +168,7 @@ function SortableTierHeader({ id, tier }: { id: string, tier: any }) {
     transition,
     isDragging,
     over
-  } = useSortable({ id });
+  } = useSortable({ id, disabled });
 
   const isOverSelf = over?.id === id;
   // We need to check the active item type. 

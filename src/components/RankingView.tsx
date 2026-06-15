@@ -177,10 +177,16 @@ export function RankingView({ sessionId, gameMode = 'all', onRestart }: RankingV
     // Handle Tier Header Drag
     if (String(active.id).startsWith('tier-')) {
       const tierKey = String(active.id).replace('tier-', '');
+      if (tierKey === 'S') return; // Tier S is always at position 0
       const overIndex = rankedSongs.findIndex(s => s.song_id === over.id);
       if (overIndex !== -1) {
         setTierBounds(prev => {
-          const newBounds = { ...(prev ?? displayTierBounds), [tierKey]: overIndex };
+          const current = prev ?? displayTierBounds;
+          const currentBound = current[tierKey] ?? 0;
+          // When dragging down (over a song that was inside or below this tier),
+          // the header should land AFTER that song → +1. When dragging up, land before it.
+          const newBound = overIndex >= currentBound ? overIndex + 1 : overIndex;
+          const newBounds = { ...current, [tierKey]: newBound };
           // Enforce logical order
           newBounds.A = Math.max(1, newBounds.A);
           newBounds.B = Math.max(newBounds.A, newBounds.B);

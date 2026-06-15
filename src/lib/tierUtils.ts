@@ -94,7 +94,7 @@ export function shiftBoundsForInsertion(
         if (removeIndex !== -1 && removeIndex < bound) {
             bound -= 1;
         }
-        if (insertIndex <= bound) {
+        if (insertIndex < bound) {
             bound += 1;
         }
 
